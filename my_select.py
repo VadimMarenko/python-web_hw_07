@@ -256,6 +256,15 @@ def select_12(group_id, discipline_id, date="2023-06-30"):
     pprint("*" * 50)
     pprint(f"12 -- {select_12.__doc__}")
 
+    # subquery = (
+    #     session.query(func.MAX(Grade.date_of))
+    #     .select_from(Grade)
+    #     .join(Student)
+    #     .filter(
+    #         and_(Student.group_id == group_id, Grade.discipline_id == discipline_id)
+    #     )
+    # ).scalar_subquery()
+
     result = (
         session.query(
             Group.name,
@@ -268,9 +277,12 @@ def select_12(group_id, discipline_id, date="2023-06-30"):
         .join(Student)
         .join(Group)
         .filter(
-            Group.id == group_id,
-            Discipline.id == discipline_id,
-            Grade.date_of == date,
+            and_(
+                Group.id == group_id,
+                Discipline.id == discipline_id,
+                Grade.date_of == date,
+                # Grade.date_of == subquery,
+            )
         )
         .all()
     )
