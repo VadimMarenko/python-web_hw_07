@@ -151,7 +151,7 @@ def select_7(group_id: int, discipline_id: int):
         .select_from(Grade)
         .join(Student)
         .join(Discipline)
-        .filter(Group.id == group_id, Discipline.id == discipline_id)
+        .filter(and_(Group.id == group_id, Discipline.id == discipline_id))
         .order_by(Student.fullname)
         .all()
     )
@@ -196,8 +196,8 @@ def select_9(student_id: int):
         .join(Student)
         .join(Discipline)
         .filter(Student.id == student_id)
-        .order_by(Discipline.name)
         .group_by(Student.fullname, Discipline.name)
+        .order_by(Discipline.name)
         .all()
     )
     return result
@@ -211,15 +211,17 @@ def select_10(teacher_id: int, student_id: int):
 
     result = (
         session.query(
+            Teacher.fullname,
+            Student.fullname,
             Discipline.name,
         )
         .select_from(Grade)
         .join(Discipline)
         .join(Student)
         .join(Teacher)
-        .filter(Teacher.id == teacher_id, Student.id == student_id)
+        .filter(and_(Teacher.id == teacher_id, Student.id == student_id))
+        .group_by(Discipline.id, Teacher.fullname, Student.fullname)
         .order_by(Discipline.name)
-        .group_by(Discipline.name)
         .all()
     )
     return result
@@ -238,12 +240,9 @@ def select_11(teacher_id: int, student_id: int):
             func.round(func.avg(Grade.grade), 2).label("average_grade"),
         )
         .join(Discipline, Discipline.teacher_id == Teacher.id)
-        .join(
-            Grade,
-            and_(Grade.student_id == student_id, Grade.discipline_id == Discipline.id),
-        )
+        .join(Grade)
         .join(Student)
-        .filter(Teacher.id == teacher_id)
+        .filter(and_(Teacher.id == teacher_id, Student.id == student_id))
         .group_by(Teacher.fullname, Student.fullname)
         .order_by(Teacher.fullname, Student.fullname)
         .all()
